@@ -196,7 +196,7 @@ func updateMinicapRotation(rotation int) {
 	devInfo := getDeviceInfo()
 	width, height := devInfo.Display.Width, devInfo.Display.Height
 	service.UpdateArgs("minicap", "/data/local/tmp/minicap", "-S", "-P",
-		fmt.Sprintf("%dx%d@%dx%d/%d", width, height, displayMaxWidthHeight, displayMaxWidthHeight, rotation))
+		fmt.Sprintf("%dx%d@%dx%d/%d", width, height, width, height, rotation))
 	if running {
 		service.Start("minicap")
 	}
@@ -626,7 +626,7 @@ func main() {
 	service.Add("minicap", cmdctrl.CommandInfo{
 		Environ: []string{"LD_LIBRARY_PATH=/data/local/tmp"},
 		Args: []string{"/data/local/tmp/minicap", "-S", "-P",
-			fmt.Sprintf("%dx%d@%dx%d/0", width, height, displayMaxWidthHeight, displayMaxWidthHeight)},
+			fmt.Sprintf("%dx%d@%dx%d/0", width, height, width, height)},
 	})
 
 	service.Add("apkagent", cmdctrl.CommandInfo{
