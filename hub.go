@@ -119,7 +119,22 @@ func (c *Client) writePump() {
 	defer func() {
 		ticker.Stop()
 		c.conn.Close()
+		if len(defaultInputMethod) > 0 {
+			data, err := setDefaultInputMethod(defaultInputMethod)
+			if err != nil {
+				log.Println("writePump setDefaultInputMethod-2,err:", err.Error(), data)
+			}
+		}
 	}()
+	ime, err := getDefaultInputMethod()
+	if err != nil {
+		log.Println("getDefaultInputMethod err:", err.Error())
+	}
+	log.Println("writePump ime:", ime)
+	data, err := setDefaultInputMethod("com.muyue.fastinputime/.CustomInputMethodService")
+	if err != nil {
+		log.Println("writePump setDefaultInputMethod-1,err:", err.Error(), data)
+	}
 	for {
 		var err error
 		select {

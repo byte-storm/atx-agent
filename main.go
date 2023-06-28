@@ -56,6 +56,7 @@ var (
 	minicapSocketPath   = "@minicap"
 	minitouchSocketPath = "@minitouch"
 	log                 = logger.Default
+	defaultInputMethod  = ""
 )
 
 const (
@@ -127,6 +128,16 @@ func getOutboundIP() (ip net.IP, err error) {
 
 	localAddr := conn.LocalAddr().(*net.UDPAddr)
 	return localAddr.IP, nil
+}
+
+func getDefaultInputMethod() (string, error) {
+	data, err := runShellTimeout(10*time.Second, "settings", "get", "secure", "default_input_method")
+	return string(data), err
+}
+
+func setDefaultInputMethod(ime string) (string, error) {
+	data, err := runShellTimeout(10*time.Second, "settings", "put", "secure", "default_input_method", ime)
+	return string(data), err
 }
 
 func mustGetOoutboundIP() net.IP {
@@ -539,6 +550,16 @@ func main() {
 
 	// CMD: info
 	os.Setenv("COLUMNS", "160")
+
+	// ime
+	ime, err := getDefaultInputMethod()
+	if err != nil {
+		log.Println("getDefaultInputMethod err:", err.Error())
+	}
+	log.Println("default ime:", ime)
+	if len(ime) > 0 {
+		defaultInputMethod = ime
+	}
 
 	kingpin.Command("info", "show device info")
 	switch kingpin.Parse() {
