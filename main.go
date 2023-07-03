@@ -214,14 +214,14 @@ func updateMinicapRotation(rotation int) {
 }
 
 func checkUiautomatorInstalled() (ok bool) {
-	pi, err := androidutils.StatPackage("com.github.uiautomator")
+	pi, err := androidutils.StatPackage("com.muyue")
 	if err != nil {
 		return
 	}
 	if pi.Version.Code < apkVersionCode {
 		return
 	}
-	_, err = androidutils.StatPackage("com.github.uiautomator.test")
+	//_, err = androidutils.StatPackage("com.github.uiautomator.test")
 	return err == nil
 }
 
@@ -659,11 +659,11 @@ func main() {
 			return nil
 		},
 		ArgsFunc: func() ([]string, error) {
-			packagePath, err := getPackagePath("com.github.uiautomator")
+			packagePath, err := getPackagePath("com.muyue")
 			if err != nil {
 				return nil, err
 			}
-			return []string{"CLASSPATH=" + packagePath, "exec", "app_process", "/system/bin", "com.github.uiautomator.Console"}, nil
+			return []string{"CLASSPATH=" + packagePath, "exec", "app_process", "/system/bin", "com.muyue.Console"}, nil
 		},
 	})
 
@@ -722,11 +722,11 @@ func main() {
 
 	// stop uiautomator when 3 minutes not requests
 	go func() {
-		for range uiautomatorTimer.C {
-			log.Println("uiautomator has not activity for 3 minutes, closed")
-			service.Stop("uiautomator")
-			service.Stop("uiautomator-1.0")
-		}
+		// for range uiautomatorTimer.C {
+		// 	log.Println("uiautomator has not activity for 3 minutes, closed")
+		// 	service.Stop("uiautomator")
+		// 	service.Stop("uiautomator-1.0")
+		// }
 	}()
 
 	if !*fNoUiautomator {

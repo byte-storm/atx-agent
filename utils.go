@@ -430,16 +430,17 @@ func copyToFile(rd io.Reader, dst string) error {
 
 // parse output: dumpsys meminfo --local ${pkgname}
 // If everything is going, returns json, unit KB
-// {
-//     "code": 58548,
-//     "graphics": 73068,
-//     "java heap": 160332,
-//     "native heap": 67708,
-//     "private Other": 34976,
-//     "stack": 4728,
-//     "system": 8288,
-//     "total": 407648
-// }
+//
+//	{
+//	    "code": 58548,
+//	    "graphics": 73068,
+//	    "java heap": 160332,
+//	    "native heap": 67708,
+//	    "private Other": 34976,
+//	    "stack": 4728,
+//	    "system": 8288,
+//	    "total": 407648
+//	}
 func parseMemoryInfo(nameOrPid string) (info map[string]int, err error) {
 	output, err := Command{
 		Args:    []string{"dumpsys", "meminfo", "--local", nameOrPid},
@@ -682,7 +683,7 @@ func killProcessByName(processName string) bool {
 
 func getPackagePath(packageName string) (string, error) {
 	pmPathOutput, err := Command{
-		Args:  []string{"pm", "path", "com.github.uiautomator"},
+		Args:  []string{"pm", "path", "com.muyue"},
 		Shell: true,
 	}.CombinedOutputString()
 	if err != nil {

@@ -550,13 +550,13 @@ func (server *Server) initHTTPServer() {
 	// if no activity in 5min, then restart apk service
 	const apkServiceTimeout = 5 * time.Minute
 	apkServiceTimer := NewSafeTimer(apkServiceTimeout)
-	go func() {
-		for range apkServiceTimer.C {
-			log.Println("startservice com.github.uiautomator/.Service")
-			runShell("am", "startservice", "-n", "com.github.uiautomator/.Service")
-			apkServiceTimer.Reset(apkServiceTimeout)
-		}
-	}()
+	// go func() {
+	// 	// for range apkServiceTimer.C {
+	// 	// 	log.Println("startservice com.github.uiautomator/.Service")
+	// 	// 	runShell("am", "startservice", "-n", "com.github.uiautomator/.Service")
+	// 	// 	apkServiceTimer.Reset(apkServiceTimeout)
+	// 	// }
+	// }()
 
 	deviceInfo := getDeviceInfo()
 
@@ -618,7 +618,7 @@ func (server *Server) initHTTPServer() {
 		rotationPublisher.Submit(deviceRotation)
 
 		// APK Service will send rotation to atx-agent when rotation changes
-		runShellTimeout(5*time.Second, "am", "startservice", "--user", "0", "-n", "com.github.uiautomator/.Service")
+		// runShellTimeout(5*time.Second, "am", "startservice", "--user", "0", "-n", "com.github.uiautomator/.Service")
 		renderJSON(w, map[string]int{
 			"rotation": deviceRotation,
 		})
