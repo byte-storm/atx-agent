@@ -11,6 +11,8 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+const MuYueImePackName = "com.muyue/.MuYueInputIME"
+
 type Hub struct {
 	clients    map[*Client]bool // Registered clients.
 	broadcast  chan []byte      // Inbound messages from the clients.
@@ -73,6 +75,15 @@ func (h *Hub) run() {
 	for {
 		select {
 		case client := <-h.register:
+			// // ime, err := getDefaultInputMethod()
+			// // if err != nil {
+			// // 	log.Println("getDefaultInputMethod err:", err.Error())
+			// // }
+			// // log.Println("register ime:", ime)
+			// data, err := setDefaultInputMethod(MuYueImePackName)
+			// if err != nil {
+			// 	log.Println("register setDefaultInputMethod-1,err:", err.Error(), data)
+			// }
 			h.clients[client] = true
 			log.Println("new broadcast client")
 			h.broadcast <- []byte("rotation " + strconv.Itoa(deviceRotation))
@@ -80,15 +91,37 @@ func (h *Hub) run() {
 				ctx, cancel = context.WithCancel(context.Background())
 				go h._startTranslate(ctx)
 			}
+
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
 				close(client.send)
 			}
+			//getListInputMethod()
+			//log.Println(defaultInputMethod, "---", MuYueImePackName, "---", len(defaultInputMethod))
+			log.Printf("ws run input:%#v\n", defaultInputMethod)
+
+			if defaultInputMethod == MuYueImePackName {
+				for i := 0; i < 5; i++ {
+					defaultInputMethod, _ = getListInputMethod()
+					log.Println("ws run defaultInputMethod : ", defaultInputMethod)
+					if len(defaultInputMethod) > 0 {
+						break
+					}
+				}
+			}
+			if len(defaultInputMethod) > 0 {
+				data, err := setDefaultInputMethod(defaultInputMethod)
+				if err != nil {
+					log.Println("writePump setDefaultInputMethod-2,err:", err.Error(), data)
+				}
+			}
+
 			if len(h.clients) == 0 {
 				log.Println("All client quited, context stop minicap service")
 				cancel()
 			}
+
 		case message := <-h.broadcast:
 			for client := range h.clients {
 				select {
@@ -119,22 +152,8 @@ func (c *Client) writePump() {
 	defer func() {
 		ticker.Stop()
 		c.conn.Close()
-		if len(defaultInputMethod) > 0 {
-			data, err := setDefaultInputMethod(defaultInputMethod)
-			if err != nil {
-				log.Println("writePump setDefaultInputMethod-2,err:", err.Error(), data)
-			}
-		}
 	}()
-	ime, err := getDefaultInputMethod()
-	if err != nil {
-		log.Println("getDefaultInputMethod err:", err.Error())
-	}
-	log.Println("writePump ime:", ime)
-	data, err := setDefaultInputMethod("com.muyue.fastinputime/.CustomInputMethodService")
-	if err != nil {
-		log.Println("writePump setDefaultInputMethod-1,err:", err.Error(), data)
-	}
+
 	for {
 		var err error
 		select {
@@ -196,6 +215,10 @@ func broadcastWebsocket() func(http.ResponseWriter, *http.Request) {
 		if err != nil {
 			log.Println(err)
 			return
+		}
+		data, err := setDefaultInputMethod(MuYueImePackName)
+		if err != nil {
+			log.Println("register setDefaultInputMethod-1,err:", err.Error(), data)
 		}
 		client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
 		hub.register <- client

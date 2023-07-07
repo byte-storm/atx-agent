@@ -132,7 +132,24 @@ func getOutboundIP() (ip net.IP, err error) {
 
 func getDefaultInputMethod() (string, error) {
 	data, err := runShellTimeout(10*time.Second, "settings", "get", "secure", "default_input_method")
-	return string(data), err
+	ime := strings.Split(string(data), "\n")
+	if len(ime) < 1 {
+		return "", errors.New("ime get is null")
+	}
+	return ime[0], err
+}
+
+func getListInputMethod() (string, error) {
+	data, err := runShellTimeout(10*time.Second, "ime", "list", "-s")
+	arr := strings.Split(string(data), "\n")
+	log.Println("ime list -s :", string(data))
+	log.Printf("ime list arr:%#v\n", arr)
+	for k := range arr {
+		if arr[k] != MuYueImePackName {
+			return arr[k], nil
+		}
+	}
+	return "", err
 }
 
 func setDefaultInputMethod(ime string) (string, error) {
@@ -307,7 +324,7 @@ var (
 			req.URL.Host = "127.0.0.1:9008"
 
 			if req.URL.Path == "/jsonrpc/0" {
-				uiautomatorTimer.Reset()
+				//uiautomatorTimer.Reset()
 			}
 		},
 		Transport: &http.Transport{
@@ -538,7 +555,7 @@ func main() {
 	cmdServer.Flag("addr", "listen port").Default(":7912").StringVar(&listenAddr) // Create on 2017/09/12
 	cmdServer.Flag("log", "log file path when in daemon mode").StringVar(&daemonLogPath)
 	// fServerURL := cmdServer.Flag("server", "server url").Short('t').String()
-	fNoUiautomator := cmdServer.Flag("nouia", "do not start uiautoamtor when start").Bool()
+	//fNoUiautomator := cmdServer.Flag("nouia", "do not start uiautoamtor when start").Bool()
 
 	// CMD: version
 	kingpin.Command("version", "show version")
@@ -695,30 +712,30 @@ func main() {
 	})
 
 	// uiautomator 2.0
-	service.Add("uiautomator", cmdctrl.CommandInfo{
-		Args: []string{"am", "instrument", "-w", "-r",
-			"-e", "debug", "false",
-			"-e", "class", "com.github.uiautomator.stub.Stub",
-			"com.github.uiautomator.test/androidx.test.runner.AndroidJUnitRunner"}, // update for android-uiautomator-server.apk>=2.3.2
-		//"com.github.uiautomator.test/android.support.test.runner.AndroidJUnitRunner"},
-		Stdout:          os.Stdout,
-		Stderr:          os.Stderr,
-		MaxRetries:      1, // only once
-		RecoverDuration: 30 * time.Second,
-		StopSignal:      os.Interrupt,
-		OnStart: func() error {
-			uiautomatorTimer.Reset()
-			// log.Println("service uiautomator: startservice com.github.uiautomator/.Service")
-			// runShell("am", "startservice", "-n", "com.github.uiautomator/.Service")
-			return nil
-		},
-		OnStop: func() {
-			uiautomatorTimer.Stop()
-			// log.Println("service uiautomator: stopservice com.github.uiautomator/.Service")
-			// runShell("am", "stopservice", "-n", "com.github.uiautomator/.Service")
-			// runShell("am", "force-stop", "com.github.uiautomator")
-		},
-	})
+	// service.Add("uiautomator", cmdctrl.CommandInfo{
+	// 	Args: []string{"am", "instrument", "-w", "-r",
+	// 		"-e", "debug", "false",
+	// 		"-e", "class", "com.github.uiautomator.stub.Stub",
+	// 		"com.github.uiautomator.test/androidx.test.runner.AndroidJUnitRunner"}, // update for android-uiautomator-server.apk>=2.3.2
+	// 	//"com.github.uiautomator.test/android.support.test.runner.AndroidJUnitRunner"},
+	// 	Stdout:          os.Stdout,
+	// 	Stderr:          os.Stderr,
+	// 	MaxRetries:      1, // only once
+	// 	RecoverDuration: 30 * time.Second,
+	// 	StopSignal:      os.Interrupt,
+	// 	OnStart: func() error {
+	// 		uiautomatorTimer.Reset()
+	// 		// log.Println("service uiautomator: startservice com.github.uiautomator/.Service")
+	// 		// runShell("am", "startservice", "-n", "com.github.uiautomator/.Service")
+	// 		return nil
+	// 	},
+	// 	OnStop: func() {
+	// 		uiautomatorTimer.Stop()
+	// 		// log.Println("service uiautomator: stopservice com.github.uiautomator/.Service")
+	// 		// runShell("am", "stopservice", "-n", "com.github.uiautomator/.Service")
+	// 		// runShell("am", "force-stop", "com.github.uiautomator")
+	// 	},
+	// })
 
 	// stop uiautomator when 3 minutes not requests
 	go func() {
@@ -729,11 +746,11 @@ func main() {
 		// }
 	}()
 
-	if !*fNoUiautomator {
-		if err := service.Start("uiautomator"); err != nil {
-			log.Println("uiautomator start failed:", err)
-		}
-	}
+	//if !*fNoUiautomator {
+	// if err := service.Start("uiautomator"); err != nil {
+	// 	log.Println("uiautomator start failed:", err)
+	// }
+	//}
 
 	server := NewServer()
 
