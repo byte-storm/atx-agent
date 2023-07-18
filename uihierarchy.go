@@ -100,8 +100,8 @@ func GetSendButtonBounds(xmldata []byte) (x, y int, err error) {
 	}()
 
 	for node := range resultChan {
-		x = node.Bounds.Top
-		y = node.Bounds.Left
+		x = node.Bounds.Left
+		y = node.Bounds.Top
 		return
 	}
 	return

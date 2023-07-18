@@ -114,17 +114,20 @@ func (server *Server) initHTTPServer() {
 
 	m.HandleFunc("/proc/clicksend", func(w http.ResponseWriter, r *http.Request) {
 		xmlContent, err := dumpHierarchyByte()
+		//xmlContent, err := os.ReadFile("/Users/chenzw/Downloads/wework.xml")
 		if err != nil {
 			log.Println("dumpHierarchyByte Err:", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
 		x, y, err := GetSendButtonBounds(xmlContent)
 		if err != nil {
 			log.Println("GetSendButtonBounds Err:", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		log.Println("GetSendButtonBounds :", x, y)
 		err = clickSend(x, y)
 		if err != nil {
 			log.Println("clickSend Err:", err)
