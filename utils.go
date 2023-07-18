@@ -627,6 +627,19 @@ func dumpHierarchy() (xmlContent string, err error) {
 	return
 }
 
+func dumpHierarchyByte() (xmlContent []byte, err error) {
+	const targetPath = "/sdcard/window_dump.xml"
+	c := &Command{
+		Args:  []string{"uiautomator", "dump", targetPath},
+		Shell: true,
+	}
+	if err = c.Run(); err != nil {
+		return
+	}
+	xmlContent, err = ioutil.ReadFile(targetPath)
+	return
+}
+
 func listPackages() (pkgs []PackageInfo, err error) {
 	c := NewCommand("pm", "list", "packages", "-f", "-3")
 	c.Shell = true
@@ -694,4 +707,9 @@ func getPackagePath(packageName string) (string, error) {
 	}
 	packagePath := strings.TrimSpace(pmPathOutput[len("package:"):])
 	return packagePath, nil
+}
+
+func clickSend(x, y int) error {
+	_, err := runShell("input", "tap", strconv.Itoa(x), strconv.Itoa(y))
+	return err
 }

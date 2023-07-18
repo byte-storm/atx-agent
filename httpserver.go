@@ -112,6 +112,28 @@ func (server *Server) initHTTPServer() {
 		renderJSON(w, resp)
 	})
 
+	m.HandleFunc("/proc/clicksend", func(w http.ResponseWriter, r *http.Request) {
+		xmlContent, err := dumpHierarchyByte()
+		if err != nil {
+			log.Println("dumpHierarchyByte Err:", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		x, y, err := GetSendButtonBounds(xmlContent)
+		if err != nil {
+			log.Println("GetSendButtonBounds Err:", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		err = clickSend(x, y)
+		if err != nil {
+			log.Println("clickSend Err:", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		renderJSON(w, struct{}{})
+	})
+
 	m.HandleFunc("/proc/list", func(w http.ResponseWriter, r *http.Request) {
 		ps, err := listAllProcs()
 		if err != nil {
