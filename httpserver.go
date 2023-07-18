@@ -112,29 +112,42 @@ func (server *Server) initHTTPServer() {
 		renderJSON(w, resp)
 	})
 
-	m.HandleFunc("/proc/clicksend", func(w http.ResponseWriter, r *http.Request) {
-		xmlContent, err := dumpHierarchyByte()
-		//xmlContent, err := os.ReadFile("/Users/chenzw/Downloads/wework.xml")
-		if err != nil {
-			log.Println("dumpHierarchyByte Err:", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	m.HandleFunc("/proc/click/send", func(w http.ResponseWriter, r *http.Request) {
 
-		x, y, err := GetSendButtonBounds(xmlContent)
+		var pos Position
+		err := json.NewDecoder(r.Body).Decode(&pos)
 		if err != nil {
-			log.Println("GetSendButtonBounds Err:", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, "Empty payload", 400) // bad request
 			return
 		}
-		log.Println("GetSendButtonBounds :", x, y)
-		err = clickSend(x, y)
+		log.Printf("clickSend position:%#v\n", pos)
+		err = clickSend(pos.X, pos.Y)
 		if err != nil {
 			log.Println("clickSend Err:", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		renderJSON(w, struct{}{})
+	}).Methods("POST")
+
+	m.HandleFunc("/proc/click/position", func(w http.ResponseWriter, r *http.Request) {
+		xmlContent, err := dumpHierarchyByte()
+		//xmlContent, err := os.ReadFile("/Users/chenzw/Downloads/wx.xml")
+		if err != nil {
+			log.Println("dumpHierarchyByte position Err:", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		pos, err := GetSendButtonBounds(xmlContent)
+		if err != nil {
+			log.Println("GetSendButtonBounds position Err:", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		log.Printf("GetSendButtonBounds position:%#v\n", pos)
+
+		renderJSON(w, pos)
 	})
 
 	m.HandleFunc("/proc/list", func(w http.ResponseWriter, r *http.Request) {

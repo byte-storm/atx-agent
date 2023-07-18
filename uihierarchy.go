@@ -30,6 +30,11 @@ type Bounds struct {
 	Bottom int `xml:"-"`
 }
 
+type Position struct {
+	X int `json:"x"`
+	Y int `json:"y"`
+}
+
 func (b *Bounds) UnmarshalXMLAttr(attr xml.Attr) error {
 	//values := strings.Fields(attr.Value)
 	values := strings.Split(attr.Value, "][")
@@ -83,7 +88,7 @@ func reverseFindNodeByText(node Node, searchText string, resultChan chan<- Node)
 	}
 }
 
-func GetSendButtonBounds(xmldata []byte) (x, y int, err error) {
+func GetSendButtonBounds(xmldata []byte) (pos Position, err error) {
 	var root Node
 	err = xml.Unmarshal(xmldata, &root)
 	if err != nil {
@@ -100,8 +105,8 @@ func GetSendButtonBounds(xmldata []byte) (x, y int, err error) {
 	}()
 
 	for node := range resultChan {
-		x = node.Bounds.Left
-		y = node.Bounds.Top
+		pos.X = node.Bounds.Left
+		pos.Y = node.Bounds.Top
 		return
 	}
 	return
