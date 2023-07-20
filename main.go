@@ -46,7 +46,7 @@ var (
 		},
 	}
 
-	version       = "dev"
+	version       = "muyue-v0.0.1-build20230720"
 	owner         = "openatx"
 	repo          = "atx-agent"
 	listenAddr    string
