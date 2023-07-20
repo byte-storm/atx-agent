@@ -713,3 +713,8 @@ func clickSend(x, y int) error {
 	_, err := runShell("input", "tap", strconv.Itoa(x), strconv.Itoa(y))
 	return err
 }
+
+func startMuyue() error {
+	_, err := runShell("am", "start", "com.muyue/.MainActivity")
+	return err
+}

@@ -23,6 +23,17 @@ type TouchRequest struct {
 	Pressure     float64 `json:"pressure"`
 }
 
+func click(conn net.Conn, reqC chan *Position) error {
+	for req := range reqC {
+		msg := fmt.Sprintf("d 0 %d %d 50\nc\n u 0\nc\n", req.X, req.Y)
+		_, err := conn.Write([]byte(msg))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // coord(0, 0) is always left-top conner, no matter the rotation changes
 func drainTouchRequests(conn net.Conn, reqC chan TouchRequest) error {
 	var maxX, maxY int

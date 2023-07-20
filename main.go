@@ -46,7 +46,7 @@ var (
 		},
 	}
 
-	version       = "muyue-v0.0.1-build20230720"
+	version       = "muyue-v0.0.1-build2023072017"
 	owner         = "openatx"
 	repo          = "atx-agent"
 	listenAddr    string
@@ -70,6 +70,7 @@ const (
 var muxMutex = sync.Mutex{}
 var muxLocks = make(map[string]bool)
 var muxConns = make(map[string]*websocket.Conn)
+var clickSendCh = make(chan *Position, 10)
 
 func singleFightWrap(handleFunc func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -193,6 +194,50 @@ func cmdError2Code(err error) int {
 		}
 	}
 	return 128
+}
+
+func runClickSendServer(quitC chan struct{}) {
+	defer func() {
+		close(clickSendCh)
+	}()
+	retries := 0
+	go func() {
+		for {
+			if retries > 100 {
+				log.Printf("runClickSendServer unix %s connect failed", minitouchSocketPath)
+				break
+			}
+			startMuyue()
+			time.Sleep(3 * time.Second)
+			conn, err := net.Dial("unix", minitouchSocketPath)
+			if err != nil {
+				retries++
+				log.Printf("runClickSendServer dial %s error: %v, wait 0.5s", minitouchSocketPath, err)
+				select {
+				case <-quitC:
+					return
+				case <-time.After(500 * time.Millisecond):
+				}
+				continue
+			}
+			buf := make([]byte, 1024)
+			_, err = conn.Read(buf)
+			if err != nil {
+				log.Printf("runClickSendServer unix %s connect err", err.Error())
+			}
+			log.Printf("runClickSendServer unix %s connected, accepting requests", minitouchSocketPath)
+			retries = 0 // connected, reset retries
+			err = click(conn, clickSendCh)
+			conn.Close()
+			if err != nil {
+				log.Println("runClickSendServer  touch requests err:", err)
+			} else {
+				log.Printf("runClickSendServer unix %s disconnected", minitouchSocketPath)
+				break // operC closed
+			}
+		}
+	}()
+
 }
 
 func GoFunc(f func() error) chan error {
@@ -754,6 +799,7 @@ func main() {
 
 	server := NewServer()
 
+	exitc := make(chan struct{})
 	sigc := make(chan os.Signal, 1)
 	signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	go func() {
@@ -774,11 +820,14 @@ func main() {
 				server.httpServer.Shutdown(context.TODO())
 				return
 			}
+			close(exitc)
 			log.Println("Ignore signal", sig)
 		}
 	}()
 
 	service.Start("minitouch")
+
+	//runClickSendServer(exitc)
 
 	// run server forever
 	if err := server.Serve(listener); err != nil {
