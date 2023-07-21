@@ -121,41 +121,39 @@ func (server *Server) initHTTPServer() {
 			return
 		}
 		log.Printf("clickSend position:%#v\n", pos)
-		// err = clickSend(pos.X, pos.Y)
-		// if err != nil {
-		// 	log.Println("clickSend Err:", err)
-		// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-		// 	return
-		// }
+		err = clickSend(pos.X, pos.Y)
+		if err != nil {
+			log.Println("clickSend Err:", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		// select {
 		// case clickSendCh <- &pos:
 		// default:
 		// 	log.Printf("clickSend touch request buffer full")
 		// }
-		conn, err := net.Dial("unix", "@minitouchagent")
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		defer conn.Close()
-		buf := make([]byte, 1024)
-		n, err := conn.Read(buf)
-		if err != nil {
-			log.Println(err)
-			return
-		}
+		// conn, err := net.Dial("unix", "@minitouchagent")
+		// if err != nil {
+		// 	log.Println(err)
+		// 	return
+		// }
+		// defer conn.Close()
+		// buf := make([]byte, 1024)
+		// n, err := conn.Read(buf)
+		// if err != nil {
+		// 	log.Println(err)
+		// 	return
+		// }
 
-		if n > 0 {
-			log.Println(string(buf[:n]))
-		}
-		msg := fmt.Sprintf("d 0 %d %d 50\nc\n u 0\nc\n", pos.X, pos.Y)
-		conn.Write([]byte(msg))
-		conn.Write([]byte("c\n"))
-		//time.Sleep(time.Millisecond * 100)
-		conn.Write([]byte("u 0\n"))
-		conn.Write([]byte("c\n"))
-
+		// if n > 0 {
+		// 	log.Println(string(buf[:n]))
+		// }
+		// msg := fmt.Sprintf("d 0 %d %d 50\nc\n u 0\nc\n", pos.X, pos.Y)
+		// _, err = conn.Write([]byte(msg))
+		// if err != nil {
+		// 	http.Error(w, " payload Write "+err.Error(), 500) // bad request
+		// }
 		renderJSON(w, struct{}{})
 	}).Methods("POST")
 

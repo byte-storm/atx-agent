@@ -783,13 +783,13 @@ func main() {
 	// })
 
 	// stop uiautomator when 3 minutes not requests
-	go func() {
-		// for range uiautomatorTimer.C {
-		// 	log.Println("uiautomator has not activity for 3 minutes, closed")
-		// 	service.Stop("uiautomator")
-		// 	service.Stop("uiautomator-1.0")
-		// }
-	}()
+	// go func() {
+	// 	// for range uiautomatorTimer.C {
+	// 	// 	log.Println("uiautomator has not activity for 3 minutes, closed")
+	// 	// 	service.Stop("uiautomator")
+	// 	// 	service.Stop("uiautomator-1.0")
+	// 	// }
+	// }()
 
 	//if !*fNoUiautomator {
 	// if err := service.Start("uiautomator"); err != nil {
